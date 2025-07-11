@@ -10,30 +10,8 @@
 
 #### Ubuntu CLI Dependency Installation
 
-```bash
-# Update package lists
-sudo apt update
+## Install Tronbox globally
 
-# Install Node.js and npm
-sudo apt install -y nodejs npm
-
-# Install Git (if not already installed)
-sudo apt install -y git
-
-# Install Docker
-sudo apt install -y docker.io
-sudo systemctl start docker
-sudo systemctl enable docker
-
-# (Optional) Install docker-compose
-sudo apt install -y docker-compose
-
-# Add your user to the docker group (to run docker without sudo)
-sudo usermod -aG docker $USER
-# Log out and log back in for group changes to take effect
-
-# Install Tronbox globally
-sudo npm install -g tronbox
 ```
 
 ---
@@ -41,8 +19,6 @@ sudo npm install -g tronbox
 ### 2. Local Tron Quickstart Node (Recommended for Testing)
 
 #### Detailed Docker Setup for Local Tron Test Node
-
-
 
 1. **Clone and start the official Tron Quickstart local node:**
 
@@ -62,6 +38,7 @@ sudo npm install -g tronbox
      ```bash
      docker run -it -p 9090:9090 --rm --name tron trontools/quickstart:latest
      ```
+     > **Note:** The initial download of the Docker image may take several minutes depending on your internet speed, as the image is large. Subsequent runs will be much faster.
      - This starts a private Tron network at `http://127.0.0.1:9090` with pre-funded test accounts.
      - You will see a list of available accounts and private keys in the container logs. Use any of these for local development.
      - You can view the accounts at any time:
