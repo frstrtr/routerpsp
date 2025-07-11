@@ -4,9 +4,8 @@ const privateKey = process.env.PRIVATE_KEY_SHASTA;
 module.exports = {
   networks: {
     development: {
-      // These are the default settings for Tronbox's local development network
-      // privateKey: 'your_private_key_here', // You can use any dummy key for local
-      privateKey: privateKey, // You can use any dummy key for local
+      // Use the first private key from Tron Quickstart local node
+      privateKey: '6dcfab3ec2eccc3d7524f2c03209c55002b94a3e75811a252baf0751e24fd1d6',
       userFeePercentage: 100,
       feeLimit: 1e9,
       fullHost: 'http://127.0.0.1:9090',
