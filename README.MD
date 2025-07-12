@@ -106,8 +106,14 @@ tronbox test --network development
 
 For testnet deployment:
 1. Get test TRX from the faucet: [https://shasta.tronex.io/join/getJoinPage](https://shasta.tronex.io/join/getJoinPage)
+
+- You may join the tg TRON developer group by https://t.me/TronOfficialDevelopersGroupEn and use the command
+
+```!shasta TRONaddress to obtain the test tokens.```
+
 2. Deploy to Shasta: `tronbox migrate --network shasta --reset`
 
+3. You need to enter the Shasta USDT address: TG3XXyLgjRGLFySgFNpCxiR4vC1Mca53vB
 ---
 
 ### Troubleshooting
