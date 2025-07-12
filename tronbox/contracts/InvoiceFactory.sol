@@ -23,6 +23,8 @@ contract InvoiceFactory {
         address contractAddress,
         address sellerWallet
     );
+    event DebugBytes(bytes data);
+    event DebugAddress(address addr);
 
     // --- Modifiers ---
 
@@ -48,29 +50,39 @@ contract InvoiceFactory {
      * @param _salt A unique identifier for the invoice (e.g., keccak256 hash of your internal invoice ID).
      * @param _sellerWallet The final destination wallet for the funds.
      */
-    function createInvoice(bytes32 _salt, address _sellerWallet) public onlyOwner {
-        // Get the bytecode for the InvoiceForwarder contract.
-        // This includes the constructor arguments (_sellerWallet, usdtTokenAddress, address(this) for the owner).
+    function createInvoice(
+        bytes32 _salt,
+        address _sellerWallet
+    ) public onlyOwner {
         bytes memory bytecode = type(InvoiceForwarder).creationCode;
-        bytecode = abi.encodePacked(bytecode, abi.encode(_sellerWallet, usdtTokenAddress, address(this)));
+        emit DebugBytes(bytecode);
+        bytes memory args = abi.encode(
+            _sellerWallet,
+            usdtTokenAddress,
+            address(this)
+        );
+        emit DebugBytes(args);
+        bytecode = abi.encodePacked(bytecode, args);
+        emit DebugBytes(bytecode);
 
-        // Predict the address where the contract will be deployed using CREATE2.
         address predictedAddress = getAddress(_salt, bytecode);
+        emit DebugAddress(predictedAddress);
 
-        // Deploy the contract using CREATE2.
         address deployedAddress;
         assembly {
-            deployedAddress := create2(0, add(bytecode, 0x20), mload(bytecode), _salt)
+            deployedAddress := create2(
+                0,
+                add(bytecode, 0x20),
+                mload(bytecode),
+                _salt
+            )
         }
+        emit DebugAddress(deployedAddress);
 
-        // Verify that the deployment was successful and at the predicted address.
         require(deployedAddress != address(0), "Deployment failed");
         require(deployedAddress == predictedAddress, "Address mismatch");
 
-        // Store the address of the new contract.
         deployedInvoices[_salt] = deployedAddress;
-
-        // Emit an event to notify the backend.
         emit InvoiceCreated(_salt, deployedAddress, _sellerWallet);
     }
 
@@ -94,7 +106,10 @@ contract InvoiceFactory {
      * @param _bytecode The creation bytecode of the InvoiceForwarder contract.
      * @return The predicted address.
      */
-    function getAddress(bytes32 _salt, bytes memory _bytecode) public view returns (address) {
+    function getAddress(
+        bytes32 _salt,
+        bytes memory _bytecode
+    ) public view returns (address) {
         bytes32 hash = keccak256(
             abi.encodePacked(
                 bytes1(0xff),
