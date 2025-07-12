@@ -5,12 +5,14 @@ pragma solidity ^0.8.0;
  * @title InvoiceForwarder
  * @dev This contract is deployed for each individual invoice. Its sole purpose is to
  * receive a single TRC-20 payment and forward it to the seller's wallet when commanded
- * by the factory.
+ * by the factory. If the factory is unresponsive, the seller can recover funds after 3 days after the first emergency request.
  */
 contract InvoiceForwarder {
     address public owner; // The Factory contract's address
     address public sellerWallet; // The seller's final wallet
     address public usdtTokenAddress; // The TRC-20 USDT token address
+    uint256 public emergencyTimelockStart;
+    uint256 public constant EMERGENCY_DELAY = 3 days;
 
     constructor(address _sellerWallet, address _usdt, address _factory) {
         owner = _factory;
@@ -24,14 +26,37 @@ contract InvoiceForwarder {
      */
     function sweepTokens() external {
         require(msg.sender == owner, "Only owner can sweep");
+        _transferAll(false);
+    }
 
-        // Define the TRC-20 interface to interact with the USDT contract.
-        // We only need the balanceOf and transfer functions.
+    /**
+     * @dev Emergency function: allows the seller to recover funds after 3 days from first emergency request.
+     */
+    function emergencyRecover() external {
+        require(msg.sender == sellerWallet, "Only seller can recover");
+        if (emergencyTimelockStart == 0) {
+            require(
+                IERC20(usdtTokenAddress).balanceOf(address(this)) > 0,
+                "No funds to recover"
+            );
+            emergencyTimelockStart = block.timestamp;
+            revert("Emergency timelock started. Try again after 3 days.");
+        }
+        require(
+            block.timestamp >= emergencyTimelockStart + EMERGENCY_DELAY,
+            "Timelock not expired"
+        );
+        _transferAll(true);
+    }
+
+    function _transferAll(bool isEmergency) internal {
         IERC20 usdt = IERC20(usdtTokenAddress);
         uint256 balance = usdt.balanceOf(address(this));
-
         if (balance > 0) {
             require(usdt.transfer(sellerWallet, balance), "Transfer failed");
+            if (isEmergency) {
+                emergencyTimelockStart = 0; // Reset after successful emergency recovery
+            }
         }
     }
 }
